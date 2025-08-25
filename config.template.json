@@ -4,7 +4,7 @@
     "client_secret": "YOUR_SIMKL_CLIENT_SECRET"
   },
   "tmdb": {
-    "api_key": "YOUR_TMDB_API_KEY"
+    "access_token": "YOUR_TMDB_ACCESS_TOKEN"
   },
   "tvdb": {
     "api_key": "YOUR_TVDB_API_KEY"

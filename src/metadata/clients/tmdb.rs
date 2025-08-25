@@ -39,15 +39,12 @@ impl TmdbClient {
             query.push(("year".to_string(), y.to_string()));
         }
 
-        let url = format!(
-            "https://api.themoviedb.org/3/search/{}?api_key={}",
-            type_param,
-            self.config.api_key
-        );
+        let url = format!("https://api.themoviedb.org/3/search/{}", type_param);
 
         let response = self.client
             .get(&url)
             .query(&query)
+            .header("Authorization", format!("Bearer {}", self.config.access_token))
             .send()
             .await?;
 
@@ -73,14 +70,14 @@ impl TmdbClient {
         };
 
         let url = format!(
-            "https://api.themoviedb.org/3/{}/{}?api_key={}&append_to_response=external_ids",
+            "https://api.themoviedb.org/3/{}/{}?append_to_response=external_ids",
             type_param,
-            tmdb_id,
-            self.config.api_key
+            tmdb_id
         );
 
         let response = self.client
             .get(&url)
+            .header("Authorization", format!("Bearer {}", self.config.access_token))
             .send()
             .await?;
 
@@ -291,12 +288,12 @@ mod tests {
     #[test]
     fn test_client_creation() {
         let config = TmdbConfig {
-            api_key: "test_api_key".to_string(),
+            access_token: "test_access_token".to_string(),
         };
 
         let client = TmdbClient::new(config);
 
         assert_eq!(client.name(), "TMDB");
-        assert_eq!(client.config.api_key, "test_api_key");
+        assert_eq!(client.config.access_token, "test_access_token");
     }
 }

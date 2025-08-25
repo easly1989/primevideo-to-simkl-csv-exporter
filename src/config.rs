@@ -24,8 +24,8 @@ pub struct SimklConfig {
 
 #[derive(Debug, Clone, Deserialize, Serialize, Validate)]
 pub struct TmdbConfig {
-    #[validate(length(min = 1, message = "API key cannot be empty"))]
-    pub api_key: String,
+    #[validate(length(min = 1, message = "Access token cannot be empty"))]
+    pub access_token: String,
 }
 
 #[derive(Debug, Clone, Deserialize, Serialize, Validate)]
@@ -107,7 +107,7 @@ impl AppConfig {
     "client_secret": "YOUR_SIMKL_CLIENT_SECRET"
   },
   "tmdb": {
-    "api_key": "YOUR_TMDB_API_KEY"
+    "access_token": "YOUR_TMDB_ACCESS_TOKEN"
   },
   "tvdb": {
     "api_key": "YOUR_TVDB_API_KEY"

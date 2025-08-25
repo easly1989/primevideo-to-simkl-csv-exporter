@@ -23,7 +23,7 @@ Help me pay off my home loan –> [Donate on PayPal](https://paypal.me/ruggieroc
 - Amazon Prime Video account
 - API keys for metadata services:
   - [Simkl Client ID](https://simkl.com/settings/developer/new/)
-  - [TMDB API Key](https://www.themoviedb.org/settings/api)
+  - [TMDB API Read Access Token](https://www.themoviedb.org/settings/api) (use the "API Read Access Token" from your TMDB account settings)
   - [TVDB API Key](https://thetvdb.com/api-information) (optional, supports v4 API)
   - [MyAnimeList Client ID and Secret](https://myanimelist.net/apiconfig/create) (optional, for anime, no debug messages will be shown if not configured)
 
@@ -55,7 +55,7 @@ Help me pay off my home loan –> [Donate on PayPal](https://paypal.me/ruggieroc
        "client_secret": "YOUR_SIMKL_CLIENT_SECRET"
      },
      "tmdb": {
-       "api_key": "YOUR_TMDB_API_KEY"
+       "access_token": "YOUR_TMDB_ACCESS_TOKEN"
      },
      "tvdb": {
        "api_key": "YOUR_TVDB_API_KEY"
