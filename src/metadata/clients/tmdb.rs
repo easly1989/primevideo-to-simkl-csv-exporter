@@ -3,22 +3,19 @@ use reqwest::Client;
 use crate::{
     config::TmdbConfig,
     error::AppError,
-    metadata::{MediaType, MetadataResult, MediaIds, MetadataProvider, RateLimit},
+    metadata::{MediaType, MetadataResult, MediaIds, MetadataProvider},
 };
 
-#[allow(dead_code)]
 pub struct TmdbClient {
     client: Client,
     config: TmdbConfig,
-    rate_limit: RateLimit,
 }
 
 impl TmdbClient {
-    pub fn new(config: TmdbConfig, rate_limit: RateLimit) -> Self {
+    pub fn new(config: TmdbConfig) -> Self {
         Self {
             client: Client::new(),
             config,
-            rate_limit,
         }
     }
 
@@ -296,9 +293,8 @@ mod tests {
         let config = TmdbConfig {
             api_key: "test_api_key".to_string(),
         };
-        let rate_limit = RateLimit { calls: 10, per_seconds: 1 };
 
-        let client = TmdbClient::new(config, rate_limit);
+        let client = TmdbClient::new(config);
 
         assert_eq!(client.name(), "TMDB");
         assert_eq!(client.config.api_key, "test_api_key");

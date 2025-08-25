@@ -3,22 +3,19 @@ use reqwest::Client;
 use crate::{
     config::SimklConfig,
     error::AppError,
-    metadata::{MediaType, MetadataResult, MediaIds, MetadataProvider, RateLimit},
+    metadata::{MediaType, MetadataResult, MediaIds, MetadataProvider},
 };
 
-#[allow(dead_code)]
 pub struct SimklClient {
     client: Client,
     config: SimklConfig,
-    rate_limit: RateLimit,
 }
 
 impl SimklClient {
-    pub fn new(config: SimklConfig, rate_limit: RateLimit) -> Self {
+    pub fn new(config: SimklConfig) -> Self {
         Self {
             client: Client::new(),
             config,
-            rate_limit,
         }
     }
 
@@ -258,9 +255,8 @@ mod tests {
             client_id: "test_client".to_string(),
             client_secret: "test_secret".to_string(),
         };
-        let rate_limit = RateLimit { calls: 10, per_seconds: 1 };
 
-        let client = SimklClient::new(config, rate_limit);
+        let client = SimklClient::new(config);
 
         assert_eq!(client.name(), "Simkl");
         assert_eq!(client.config.client_id, "test_client");

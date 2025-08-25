@@ -16,8 +16,9 @@ pub struct MetadataService {
 
 impl MetadataService {
     pub fn new(
-        priority_order: PriorityOrder, 
-        rate_limits: RateLimitConfig,
+        priority_order: PriorityOrder,
+        #[allow(unused_variables)]
+        rate_limits: RateLimitConfig, // Reserved for future rate limiting implementation
         simkl_config: SimklConfig,
         tmdb_config: TmdbConfig,
         tvdb_config: TvdbConfig,
@@ -29,13 +30,13 @@ impl MetadataService {
         for service in priority_order {
             match service {
                 ServiceType::Simkl => providers.push(Box::new(
-                    SimklClient::new(simkl_config.clone(), rate_limits.simkl.clone())
+                    SimklClient::new(simkl_config.clone())
                 )),
                 ServiceType::Tmdb => providers.push(Box::new(
-                    TmdbClient::new(tmdb_config.clone(), rate_limits.tmdb.clone())
+                    TmdbClient::new(tmdb_config.clone())
                 )),
                 ServiceType::Tvdb => providers.push(Box::new(
-                    TvdbClient::new(tvdb_config.clone(), rate_limits.tvdb.clone())
+                    TvdbClient::new(tvdb_config.clone())
                 )),
                 ServiceType::Imdb => providers.push(Box::new(
                     ImdbClient::new(imdb_config.clone())

@@ -3,23 +3,20 @@ use reqwest::Client;
 use crate::{
     config::TvdbConfig,
     error::AppError,
-    metadata::{MediaType, MetadataResult, MediaIds, MetadataProvider, RateLimit},
+    metadata::{MediaType, MetadataResult, MediaIds, MetadataProvider},
 };
 
-#[allow(dead_code)]
 pub struct TvdbClient {
     client: Client,
     config: TvdbConfig,
-    rate_limit: RateLimit,
     access_token: Option<String>,
 }
 
 impl TvdbClient {
-    pub fn new(config: TvdbConfig, rate_limit: RateLimit) -> Self {
+    pub fn new(config: TvdbConfig) -> Self {
         Self {
             client: Client::new(),
             config,
-            rate_limit,
             access_token: None,
         }
     }
@@ -296,9 +293,8 @@ mod tests {
         let config = TvdbConfig {
             api_key: "test_api_key".to_string(),
         };
-        let rate_limit = RateLimit { calls: 10, per_seconds: 1 };
 
-        let client = TvdbClient::new(config, rate_limit);
+        let client = TvdbClient::new(config);
 
         assert_eq!(client.name(), "TVDB");
         assert_eq!(client.config.api_key, "test_api_key");
