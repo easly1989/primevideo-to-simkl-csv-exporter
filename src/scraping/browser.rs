@@ -2,7 +2,6 @@ use fantoccini::{Client, ClientBuilder};
 use crate::error::AppError;
 use std::time::Duration;
 
-#[allow(dead_code)]
 pub struct BrowserController {
     client: Option<Client>,
     headless: bool,
@@ -20,14 +19,17 @@ impl BrowserController {
 
     pub async fn start(&mut self) -> Result<(), AppError> {
         let builder = ClientBuilder::native();
-        // Note: Headless mode would need to be configured differently based on the WebDriver
 
-        self.client = Some(
-            builder
-                .connect("http://localhost:4444")
-                .await
-                .map_err(|e| AppError::BrowserError(e.to_string()))?
-        );
+        // Note: Headless mode configuration would need to be implemented
+        // based on the specific WebDriver being used and may not be
+        // supported by the current version of fantoccini
+
+        let client = builder
+            .connect("http://localhost:4444")
+            .await
+            .map_err(|e| AppError::BrowserError(e.to_string()))?;
+
+        self.client = Some(client);
         Ok(())
     }
 
@@ -48,13 +50,4 @@ impl BrowserController {
         self.client.as_ref()
     }
 
-    pub async fn take_screenshot(&mut self, path: &str) -> Result<(), AppError> {
-        if let Some(client) = &mut self.client {
-            let screenshot = client.screenshot().await
-                .map_err(|e| AppError::BrowserError(e.to_string()))?;
-            tokio::fs::write(path, screenshot).await
-                .map_err(|e| AppError::BrowserError(e.to_string()))?;
-        }
-        Ok(())
-    }
 }

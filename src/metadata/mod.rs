@@ -38,10 +38,10 @@ impl MetadataService {
                     TvdbClient::new(tvdb_config.clone(), rate_limits.tvdb.clone())
                 )),
                 ServiceType::Imdb => providers.push(Box::new(
-                    ImdbClient::new(imdb_config.clone(), rate_limits.imdb.clone())
+                    ImdbClient::new(imdb_config.clone())
                 )),
                 ServiceType::Mal => providers.push(Box::new(
-                    MalClient::new(mal_config.clone(), rate_limits.mal.clone())
+                    MalClient::new(mal_config.clone())
                 )),
             }
         }

@@ -29,6 +29,87 @@ Details of major code blocks (functions, structs, modules) removed from files th
 - **Removed**: Node.js-specific exclusions (`node_modules/`, `npm-debug.log`, `yarn-error.log`, `package-lock.json`, `yarn.lock`)
 - **Reason**: These entries were no longer relevant for a pure Rust project, replaced by Rust-specific entries (`target/`, `Cargo.lock`)
 
+### Removed `#[allow(dead_code)]` Attributes
+After analyzing the codebase, several `#[allow(dead_code)]` attributes were removed and unused code was eliminated:
+
+#### `src/app.rs`
+- **Removed**: `#[allow(dead_code)]` from `App::new()` method
+- **Reason**: Method is a valid public API for library users, even if not used by the CLI
+
+#### `src/config.rs`
+- **Removed**: `#[allow(dead_code)]` from `AppConfig::load()` method
+- **Reason**: Method is used by `App::new()` and provides a valid public API
+
+#### `src/scraping/browser.rs`
+- **Removed**: `#[allow(dead_code)]` from `BrowserController` struct
+- **Reason**: Struct is actively used by the `Scraper` implementation
+
+#### `src/scraping/mod.rs`
+- **Removed**: `#[allow(dead_code)]` from `take_screenshot()` method
+- **Reason**: Method is part of the public API and may be useful for debugging
+
+#### `src/metadata/clients/imdb.rs`
+- **Removed**: `#[allow(dead_code)]` from `ImdbClient` struct and `search()` method
+- **Reason**: Client is used by the `MetadataService` in the main application flow
+
+#### `src/metadata/clients/mal.rs`
+- **Removed**: `#[allow(dead_code)]` from `MalClient` struct
+- **Reason**: Client is used by the `MetadataService` in the main application flow
+
+### Completely Removed Unused Code
+
+#### `src/shutdown.rs`
+- **Removed**: `is_shutdown()` method entirely
+- **Reason**: Method was never called and provided no value to the API
+
+#### `src/processor/progress_tracker.rs`
+- **Removed**: `log_scraped()` method entirely
+- **Reason**: Method was only used by the removed `Processor` struct
+
+#### `src/processor/mod.rs`
+- **Removed**: Entire `Processor` struct and all its methods
+- **Reason**: Alternative implementation replaced by the current `HistoryProcessor::process()` approach
+
+#### `src/metadata/provider.rs`
+- **Removed**: `TokenBucket` struct and `RateLimitedProvider<T>` implementation (71 lines)
+- **Reason**: Feature was implemented but never integrated into the main application flow
+
+### Fixed Warning Issues
+
+#### Removed Unused Methods and Functions
+- **Removed**: `App::new()` and `AppConfig::load()` methods
+- **Reason**: These convenience methods were not used in the current application
+
+- **Removed**: `take_screenshot()` methods from `BrowserController` and `Scraper`
+- **Reason**: Methods were not called anywhere in the codebase
+
+- **Removed**: `ImdbClient::search()` internal method
+- **Reason**: Method was not used (trait implementation handles search directly)
+
+#### Cleaned Up Unused Fields
+- **Removed**: `rate_limit` field from `ImdbClient` and `MalClient` structs
+- **Reason**: Fields were stored but never accessed
+
+#### Cleaned Up Unused Imports
+- **Removed**: Unused imports from `src/processor/mod.rs`
+- **Removed**: `RateLimit` import from IMDB and MAL clients
+- **Removed**: `HistoryProcessor` re-export (not used via module path)
+
+#### Fixed Compilation Errors
+- **Fixed**: Removed unsupported `with_capability()` method call
+- **Reason**: Method not available in current fantoccini version
+
+### Remaining Acceptable Warnings
+Two minor warnings remain and are acceptable:
+
+1. **`headless` and `timeout` fields in `BrowserController`**
+   - **Why kept**: Part of public constructor API, intended for future WebDriver configuration
+   - **Impact**: Minimal - fields are stored but not currently used
+
+2. **`get_details` method in `MetadataProvider` trait**
+   - **Why kept**: Required by trait definition for external implementations
+   - **Impact**: None - trait methods may not be used by all implementors
+
 ## 3. Summary of Changes
 
 A brief overview of the migration, emphasizing the transition to a pure Rust codebase and the removal of all legacy JavaScript components.

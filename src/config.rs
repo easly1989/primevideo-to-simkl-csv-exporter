@@ -62,15 +62,6 @@ pub struct OutputConfig {
 }
 
 impl AppConfig {
-    #[allow(dead_code)]
-    pub fn load() -> Result<Self, config::ConfigError> {
-        let config = Config::builder()
-            .add_source(config::File::with_name("config"))
-            .build()?;
-
-        config.try_deserialize()
-    }
-
     pub fn load_with_cli_args(cli_args: &crate::cli::CliArgs) -> Result<Self, Box<dyn std::error::Error>> {
         let mut builder = Config::builder()
             .add_source(config::File::with_name("config").required(false));
