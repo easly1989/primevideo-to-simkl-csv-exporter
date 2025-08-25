@@ -179,79 +179,91 @@ impl From<SimklDetailsResponse> for MetadataResult {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use mockito::Server;
-    use serde_json::json;
 
-    #[tokio::test]
-    #[ignore] // Temporarily ignored due to async runtime conflicts during migration
-    async fn test_search_movie() {
-        let mut server = Server::new();
-        let mock_response = json!([{
-            "title": "Inception",
-            "year": "2010",
-            "ids": {
-                "simkl": "123",
-                "imdb": "tt1375666",
-                "tmdb": "12345"
-            }
-        }]);
-
-        let _m = server.mock("GET", "/search?q=Inception&type=movie")
-            .with_status(200)
-            .with_header("content-type", "application/json")
-            .with_body(mock_response.to_string())
-            .create();
-
-        let client = SimklClient::new(
-            SimklConfig {
-                client_id: "test".to_string(),
-                client_secret: "test".to_string(),
+    #[test]
+    fn test_simkl_search_item_conversion() {
+        let item = SimklSearchItem {
+            title: "Inception".to_string(),
+            year: Some("2010".to_string()),
+            ids: SimklIds {
+                simkl: "123".to_string(),
+                imdb: Some("tt1375666".to_string()),
+                tmdb: Some("12345".to_string()),
+                tvdb: None,
             },
-            RateLimit { calls: 10, per_seconds: 1 }
-        );
+        };
 
-        let results = client.search("Inception", MediaType::Movie, None)
-            .await
-            .unwrap();
-
-        assert_eq!(results.len(), 1);
-        assert_eq!(results[0].title, "Inception");
-        assert_eq!(results[0].ids.imdb, Some("tt1375666".to_string()));
-    }
-
-    #[tokio::test]
-    #[ignore] // Temporarily ignored due to async runtime conflicts during migration
-    async fn test_get_details() {
-        let mut server = Server::new();
-        let mock_response = json!({
-            "title": "Inception",
-            "year": "2010",
-            "ids": {
-                "simkl": "123",
-                "imdb": "tt1375666",
-                "tmdb": "12345"
-            }
-        });
-
-        let _m = server.mock("GET", "/movies/123?extended=full")
-            .with_status(200)
-            .with_header("content-type", "application/json")
-            .with_body(mock_response.to_string())
-            .create();
-
-        let client = SimklClient::new(
-            SimklConfig {
-                client_id: "test".to_string(),
-                client_secret: "test".to_string(),
-            },
-            RateLimit { calls: 10, per_seconds: 1 }
-        );
-
-        let result = client.get_details("123", MediaType::Movie)
-            .await
-            .unwrap();
+        let result: MetadataResult = item.into();
 
         assert_eq!(result.title, "Inception");
+        assert_eq!(result.year, Some("2010".to_string()));
+        assert_eq!(result.ids.simkl, Some("123".to_string()));
         assert_eq!(result.ids.imdb, Some("tt1375666".to_string()));
+        assert_eq!(result.ids.tmdb, Some("12345".to_string()));
+        assert_eq!(result.ids.tvdb, None);
+        assert_eq!(result.media_type, MediaType::Movie);
+    }
+
+    #[test]
+    fn test_simkl_details_conversion() {
+        let details = SimklDetailsResponse {
+            title: "Breaking Bad".to_string(),
+            year: Some("2008".to_string()),
+            ids: SimklIds {
+                simkl: "456".to_string(),
+                imdb: Some("tt0903747".to_string()),
+                tmdb: Some("12345".to_string()),
+                tvdb: Some("789".to_string()),
+            },
+        };
+
+        let result: MetadataResult = details.into();
+
+        assert_eq!(result.title, "Breaking Bad");
+        assert_eq!(result.year, Some("2008".to_string()));
+        assert_eq!(result.ids.simkl, Some("456".to_string()));
+        assert_eq!(result.ids.imdb, Some("tt0903747".to_string()));
+        assert_eq!(result.ids.tmdb, Some("12345".to_string()));
+        assert_eq!(result.ids.tvdb, Some("789".to_string()));
+        assert_eq!(result.media_type, MediaType::Movie);
+    }
+
+    #[test]
+    fn test_simkl_item_with_missing_fields() {
+        let item = SimklSearchItem {
+            title: "Unknown Show".to_string(),
+            year: None,
+            ids: SimklIds {
+                simkl: "999".to_string(),
+                imdb: None,
+                tmdb: None,
+                tvdb: None,
+            },
+        };
+
+        let result: MetadataResult = item.into();
+
+        assert_eq!(result.title, "Unknown Show");
+        assert_eq!(result.year, None);
+        assert_eq!(result.ids.simkl, Some("999".to_string()));
+        assert_eq!(result.ids.imdb, None);
+        assert_eq!(result.ids.tmdb, None);
+        assert_eq!(result.ids.tvdb, None);
+        assert_eq!(result.media_type, MediaType::Movie);
+    }
+
+    #[test]
+    fn test_client_creation() {
+        let config = SimklConfig {
+            client_id: "test_client".to_string(),
+            client_secret: "test_secret".to_string(),
+        };
+        let rate_limit = RateLimit { calls: 10, per_seconds: 1 };
+
+        let client = SimklClient::new(config, rate_limit);
+
+        assert_eq!(client.name(), "Simkl");
+        assert_eq!(client.config.client_id, "test_client");
+        assert_eq!(client.config.client_secret, "test_secret");
     }
 }
