@@ -163,6 +163,10 @@ A brief overview of the migration, emphasizing the transition to a pure Rust cod
 - **Kept**: `rate_limits` parameter in `MetadataService::new()` with `#[allow(unused_variables)]`
 - **Rationale**: Parameter is part of public API, reserved for future rate limiting implementation
 
+### Configuration Template Creation
+- **Created**: `config.template.json` configuration template file
+- **Rationale**: README instructions referenced this file for user setup, but it was missing after migration
+
 The migration from JavaScript to Rust has been completed successfully, resulting in a clean, working Rust codebase that maintains all the original functionality while providing the benefits of Rust's performance, safety, and maintainability.
 
 ### Final Zero-Warning Status

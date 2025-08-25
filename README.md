@@ -40,44 +40,44 @@ Help me pay off my home loan –> [Donate on PayPal](https://paypal.me/ruggieroc
    cargo build --release
    ```
 
-3. Create your configuration file:
+3. Run the application for the first time:
    ```bash
-   cp config.template.json config.json
+   cargo run --release
    ```
 
-4. Edit `config.json` with your API keys and Amazon credentials:
+   The application will automatically create a `config.json` file in the executable directory with default values.
+
+4. Edit the generated `config.json` file with your API keys and Amazon credentials:
    ```json
    {
-     "api_keys": {
-       "simkl_client_id": "YOUR_SIMKL_CLIENT_ID",
-       "simkl_client_secret": "YOUR_SIMKL_SECRET",
-       "tmdb_api_key": "YOUR_TMDB_API_KEY",
-       "tvdb_api_key": "YOUR_TVDB_API_KEY",
-       "mal_client_id": "YOUR_MAL_CLIENT_ID",
-       "mal_client_secret": "YOUR_MAL_CLIENT_SECRET"
+     "simkl": {
+       "client_id": "YOUR_SIMKL_CLIENT_ID",
+       "client_secret": "YOUR_SIMKL_CLIENT_SECRET"
      },
-     "amazon_credentials": {
+     "tmdb": {
+       "api_key": "YOUR_TMDB_API_KEY"
+     },
+     "tvdb": {
+       "api_key": "YOUR_TVDB_API_KEY"
+     },
+     "imdb": {
+       "api_key": "YOUR_IMDB_API_KEY"
+     },
+     "mal": {
+       "client_id": "YOUR_MAL_CLIENT_ID",
+       "client_secret": "YOUR_MAL_CLIENT_SECRET"
+     },
+     "amazon": {
        "email": "YOUR_AMAZON_EMAIL",
        "password": "YOUR_AMAZON_PASSWORD"
      },
      "output": {
        "path": "./export.csv"
-     },
-     "metadata": {
-       "priority_order": ["simkl", "tmdb", "tvdb", "imdb", "mal"],
-       "use_original_titles": true
-     },
-     "rate_limiting": {
-       "simkl": { "calls": 30, "per_seconds": 10 },
-       "tmdb": { "calls": 40, "per_seconds": 10 },
-       "tvdb": { "calls": 100, "per_seconds": 60 },
-       "imdb": { "calls": 5, "per_seconds": 10 },
-       "mal": { "calls": 2, "per_seconds": 1 }
      }
    }
    ```
 
-> **IMPORTANT**: The `config.json` file contains your API keys and credentials. It is gitignored to prevent accidentally committing sensitive information.
+> **IMPORTANT**: The `config.json` file contains your API keys and credentials. It is automatically created in the executable directory and should not be committed to version control to prevent accidentally exposing sensitive information.
 
 ## Usage
 

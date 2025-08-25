@@ -11,7 +11,7 @@ export.csv
 .env
 *.env
 config.local.*
-/config.js
+/config.json
 
 # IDE (minimal)
 .vscode/

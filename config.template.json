@@ -1,0 +1,26 @@
+{
+  "simkl": {
+    "client_id": "YOUR_SIMKL_CLIENT_ID",
+    "client_secret": "YOUR_SIMKL_CLIENT_SECRET"
+  },
+  "tmdb": {
+    "api_key": "YOUR_TMDB_API_KEY"
+  },
+  "tvdb": {
+    "api_key": "YOUR_TVDB_API_KEY"
+  },
+  "imdb": {
+    "api_key": "YOUR_IMDB_API_KEY"
+  },
+  "mal": {
+    "client_id": "YOUR_MAL_CLIENT_ID",
+    "client_secret": "YOUR_MAL_CLIENT_SECRET"
+  },
+  "amazon": {
+    "email": "YOUR_AMAZON_EMAIL",
+    "password": "YOUR_AMAZON_PASSWORD"
+  },
+  "output": {
+    "path": "./export.csv"
+  }
+}

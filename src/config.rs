@@ -63,12 +63,25 @@ pub struct OutputConfig {
 
 impl AppConfig {
     pub fn load_with_cli_args(cli_args: &crate::cli::CliArgs) -> Result<Self, Box<dyn std::error::Error>> {
+        // Get the executable's directory
+        let exe_path = std::env::current_exe()?;
+        let exe_dir = exe_path.parent().unwrap_or_else(|| std::path::Path::new("."));
+
+        // Check if config exists in executable directory, if not create default
+        let config_path = exe_dir.join("config.json");
+        if !config_path.exists() {
+            Self::create_default_config(&config_path)?;
+            println!("Created default config file at: {}", config_path.display());
+            println!("Please edit the config file with your API keys and credentials before running the application.");
+            return Err("Please configure your API keys in the config file".into());
+        }
+
         let mut builder = Config::builder()
-            .add_source(config::File::with_name("config").required(false));
+            .add_source(config::File::with_name(config_path.to_str().unwrap()).required(false));
 
         // Override with CLI arguments if provided
-        if let Some(config_path) = &cli_args.config {
-            builder = builder.add_source(config::File::with_name(config_path.to_str().unwrap()));
+        if let Some(cli_config_path) = &cli_args.config {
+            builder = builder.add_source(config::File::with_name(cli_config_path.to_str().unwrap()));
         }
 
         // Override specific values from CLI args
@@ -85,6 +98,38 @@ impl AppConfig {
         })?;
 
         Ok(app_config)
+    }
+
+    fn create_default_config(config_path: &std::path::Path) -> Result<(), Box<dyn std::error::Error>> {
+        let default_config = r#"{
+  "simkl": {
+    "client_id": "YOUR_SIMKL_CLIENT_ID",
+    "client_secret": "YOUR_SIMKL_CLIENT_SECRET"
+  },
+  "tmdb": {
+    "api_key": "YOUR_TMDB_API_KEY"
+  },
+  "tvdb": {
+    "api_key": "YOUR_TVDB_API_KEY"
+  },
+  "imdb": {
+    "api_key": "YOUR_IMDB_API_KEY"
+  },
+  "mal": {
+    "client_id": "YOUR_MAL_CLIENT_ID",
+    "client_secret": "YOUR_MAL_CLIENT_SECRET"
+  },
+  "amazon": {
+    "email": "YOUR_AMAZON_EMAIL",
+    "password": "YOUR_AMAZON_PASSWORD"
+  },
+  "output": {
+    "path": "./export.csv"
+  }
+}"#;
+
+        std::fs::write(config_path, default_config)?;
+        Ok(())
     }
 
     pub fn validate(&self) -> Result<(), validator::ValidationErrors> {
