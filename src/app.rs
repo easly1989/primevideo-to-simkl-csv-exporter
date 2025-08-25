@@ -18,12 +18,6 @@ pub struct App {
 }
 
 impl App {
-    #[allow(dead_code)]
-    pub fn new() -> Result<Self, AppError> {
-        let config = AppConfig::load()?;
-        Self::new_with_config(config)
-    }
-
     pub fn new_with_config(config: AppConfig) -> Result<Self, AppError> {
         let progress = Arc::new(Mutex::new(ProgressTracker::new()));
         let generator = CsvGenerator::new(config.output.clone());

@@ -18,11 +18,6 @@ impl ShutdownManager {
         }
     }
 
-    #[allow(dead_code)]
-    pub fn is_shutdown(&self) -> bool {
-        self.shutdown_flag.load(Ordering::SeqCst)
-    }
-
     pub async fn wait_for_shutdown(&self) {
         self.shutdown_notify.notified().await;
     }

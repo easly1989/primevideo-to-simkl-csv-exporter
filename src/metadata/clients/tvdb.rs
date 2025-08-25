@@ -3,23 +3,20 @@ use reqwest::Client;
 use crate::{
     config::TvdbConfig,
     error::AppError,
-    metadata::{MediaType, MetadataResult, MediaIds, MetadataProvider, RateLimit},
+    metadata::{MediaType, MetadataResult, MediaIds, MetadataProvider},
 };
 
-#[allow(dead_code)]
 pub struct TvdbClient {
     client: Client,
     config: TvdbConfig,
-    rate_limit: RateLimit,
     access_token: Option<String>,
 }
 
 impl TvdbClient {
-    pub fn new(config: TvdbConfig, rate_limit: RateLimit) -> Self {
+    pub fn new(config: TvdbConfig) -> Self {
         Self {
             client: Client::new(),
             config,
-            rate_limit,
             access_token: None,
         }
     }
@@ -222,94 +219,84 @@ impl From<TvdbDetailsItem> for MetadataResult {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use mockito::Server;
-    use serde_json::json;
 
-    #[tokio::test]
-    #[ignore] // Temporarily ignored due to async runtime conflicts during migration
-    async fn test_search() {
-        let mut server = Server::new();
-        
-        // Mock auth endpoint
-        let _m_auth = server.mock("POST", "/login")
-            .with_status(200)
-            .with_header("content-type", "application/json")
-            .with_body(json!({"token": "test_token"}).to_string())
-            .create();
+    #[test]
+    fn test_tvdb_search_item_conversion() {
+        let item = TvdbSearchItem {
+            id: 123,
+            series_name: "Breaking Bad".to_string(),
+            first_aired: Some("2008-01-20".to_string()),
+        };
 
-        // Mock search endpoint
-        let mock_response = json!({
-            "data": [{
-                "id": 123,
-                "seriesName": "Breaking Bad",
-                "firstAired": "2008-01-20"
-            }]
-        });
-
-        let _m_search = server.mock("GET", "/search/series?name=Breaking%20Bad")
-            .with_status(200)
-            .with_header("content-type", "application/json")
-            .with_header("Authorization", "Bearer test_token")
-            .with_body(mock_response.to_string())
-            .create();
-
-        let client = TvdbClient::new(
-            TvdbConfig {
-                api_key: "test".to_string(),
-            },
-            RateLimit { calls: 10, per_seconds: 1 }
-        );
-
-        let results = client.search("Breaking Bad", MediaType::Tv, None)
-            .await
-            .unwrap();
-
-        assert_eq!(results.len(), 1);
-        assert_eq!(results[0].title, "Breaking Bad");
-        assert_eq!(results[0].ids.tvdb, Some("123".to_string()));
-    }
-
-    #[tokio::test]
-    #[ignore] // Temporarily ignored due to async runtime conflicts during migration
-    async fn test_get_details() {
-        let mut server = Server::new();
-        
-        // Mock auth endpoint
-        let _m_auth = server.mock("POST", "/login")
-            .with_status(200)
-            .with_header("content-type", "application/json")
-            .with_body(json!({"token": "test_token"}).to_string())
-            .create();
-
-        // Mock details endpoint
-        let mock_response = json!({
-            "data": {
-                "id": 123,
-                "seriesName": "Breaking Bad",
-                "firstAired": "2008-01-20",
-                "imdbId": "tt0903747"
-            }
-        });
-
-        let _m_details = server.mock("GET", "/series/123")
-            .with_status(200)
-            .with_header("content-type", "application/json")
-            .with_header("Authorization", "Bearer test_token")
-            .with_body(mock_response.to_string())
-            .create();
-
-        let client = TvdbClient::new(
-            TvdbConfig {
-                api_key: "test".to_string(),
-            },
-            RateLimit { calls: 10, per_seconds: 1 }
-        );
-
-        let result = client.get_details("123", MediaType::Tv)
-            .await
-            .unwrap();
+        let result: MetadataResult = item.into();
 
         assert_eq!(result.title, "Breaking Bad");
+        assert_eq!(result.ids.tvdb, Some("123".to_string()));
+        assert_eq!(result.year, Some("2008".to_string()));
+        assert_eq!(result.media_type, MediaType::Tv);
+    }
+
+    #[test]
+    fn test_tvdb_search_item_without_date() {
+        let item = TvdbSearchItem {
+            id: 456,
+            series_name: "Unknown Show".to_string(),
+            first_aired: None,
+        };
+
+        let result: MetadataResult = item.into();
+
+        assert_eq!(result.title, "Unknown Show");
+        assert_eq!(result.ids.tvdb, Some("456".to_string()));
+        assert_eq!(result.year, None);
+        assert_eq!(result.media_type, MediaType::Tv);
+    }
+
+    #[test]
+    fn test_tvdb_details_conversion() {
+        let details = TvdbDetailsItem {
+            id: 123,
+            series_name: "Breaking Bad".to_string(),
+            first_aired: Some("2008-01-20".to_string()),
+            imdb_id: Some("tt0903747".to_string()),
+        };
+
+        let result: MetadataResult = details.into();
+
+        assert_eq!(result.title, "Breaking Bad");
+        assert_eq!(result.ids.tvdb, Some("123".to_string()));
         assert_eq!(result.ids.imdb, Some("tt0903747".to_string()));
+        assert_eq!(result.year, Some("2008".to_string()));
+        assert_eq!(result.media_type, MediaType::Tv);
+    }
+
+    #[test]
+    fn test_tvdb_details_without_imdb() {
+        let details = TvdbDetailsItem {
+            id: 789,
+            series_name: "Another Show".to_string(),
+            first_aired: Some("2015-05-10".to_string()),
+            imdb_id: None,
+        };
+
+        let result: MetadataResult = details.into();
+
+        assert_eq!(result.title, "Another Show");
+        assert_eq!(result.ids.tvdb, Some("789".to_string()));
+        assert_eq!(result.ids.imdb, None);
+        assert_eq!(result.year, Some("2015".to_string()));
+        assert_eq!(result.media_type, MediaType::Tv);
+    }
+
+    #[test]
+    fn test_client_creation() {
+        let config = TvdbConfig {
+            api_key: "test_api_key".to_string(),
+        };
+
+        let client = TvdbClient::new(config);
+
+        assert_eq!(client.name(), "TVDB");
+        assert_eq!(client.config.api_key, "test_api_key");
     }
 }

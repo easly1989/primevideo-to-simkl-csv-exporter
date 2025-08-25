@@ -4,58 +4,22 @@ use serde::Deserialize;
 use crate::{
     config::ImdbConfig,
     error::AppError,
-    metadata::{MediaType, MetadataResult, MediaIds, MetadataProvider, RateLimit},
+    metadata::{MediaType, MetadataResult, MediaIds, MetadataProvider},
 };
 
-#[allow(dead_code)]
 pub struct ImdbClient {
     client: Client,
     config: ImdbConfig,
-    rate_limit: RateLimit,
 }
 
 impl ImdbClient {
-    pub fn new(config: ImdbConfig, rate_limit: RateLimit) -> Self {
+    pub fn new(config: ImdbConfig) -> Self {
         Self {
             client: Client::new(),
             config,
-            rate_limit,
         }
     }
 
-    #[allow(dead_code)]
-    async fn search(
-        &self,
-        title: &str,
-        media_type: MediaType,
-        _year: Option<i32>,
-    ) -> Result<Vec<MetadataResult>, AppError> {
-        let _type_param = match media_type {
-            MediaType::Movie => "movie",
-            MediaType::Tv => "tvSeries",
-        };
-
-        let url = format!(
-            "https://imdb-api.com/API/Search/{}/{}",
-            self.config.api_key,
-            title
-        );
-
-        let response = self.client
-            .get(&url)
-            .send()
-            .await?;
-
-        if response.status().is_success() {
-            let results: ImdbSearchResponse = response.json().await?;
-            Ok(results.results.into_iter().map(|item| item.into()).collect())
-        } else {
-            Err(AppError::MetadataError(format!(
-                "IMDB API error: {}",
-                response.status()
-            )))
-        }
-    }
 
     async fn get_details(&self, imdb_id: &str) -> Result<MetadataResult, AppError> {
         let url = format!(

@@ -33,15 +33,6 @@ impl ProgressTracker {
         self.pb.set_message(message.to_string());
     }
 
-    #[allow(dead_code)]
-    pub fn log_scraped(&mut self, count: usize) {
-        self.total_items = count;
-        self.pb.set_message(format!(
-            "Scraped {} items, starting metadata lookup...", 
-            count
-        ));
-    }
-
     pub fn log_processing(&mut self, title: &str) {
         self.pb.set_message(format!(
             "Processing: {} ({} remaining)", 

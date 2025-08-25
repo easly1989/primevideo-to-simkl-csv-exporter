@@ -3,23 +3,20 @@ use reqwest::Client;
 use crate::{
     config::MalConfig,
     error::AppError,
-    metadata::{MediaType, MetadataResult, MediaIds, MetadataProvider, RateLimit},
+    metadata::{MediaType, MetadataResult, MediaIds, MetadataProvider},
 };
 
-#[allow(dead_code)]
 pub struct MalClient {
     client: Client,
     config: MalConfig,
-    rate_limit: RateLimit,
     access_token: Option<String>,
 }
 
 impl MalClient {
-    pub fn new(config: MalConfig, rate_limit: RateLimit) -> Self {
+    pub fn new(config: MalConfig) -> Self {
         Self {
             client: Client::new(),
             config,
-            rate_limit,
             access_token: None,
         }
     }

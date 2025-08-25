@@ -3,22 +3,19 @@ use reqwest::Client;
 use crate::{
     config::TmdbConfig,
     error::AppError,
-    metadata::{MediaType, MetadataResult, MediaIds, MetadataProvider, RateLimit},
+    metadata::{MediaType, MetadataResult, MediaIds, MetadataProvider},
 };
 
-#[allow(dead_code)]
 pub struct TmdbClient {
     client: Client,
     config: TmdbConfig,
-    rate_limit: RateLimit,
 }
 
 impl TmdbClient {
-    pub fn new(config: TmdbConfig, rate_limit: RateLimit) -> Self {
+    pub fn new(config: TmdbConfig) -> Self {
         Self {
             client: Client::new(),
             config,
-            rate_limit,
         }
     }
 
@@ -204,78 +201,102 @@ impl From<TmdbDetailsResponse> for MetadataResult {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use mockito::Server;
-    use serde_json::json;
 
-    #[tokio::test]
-    #[ignore] // Temporarily ignored due to async runtime conflicts during migration
-    async fn test_search_movie() {
-        let mut server = Server::new();
-        let mock_response = json!({
-            "results": [{
-                "id": 123,
-                "title": "Inception",
-                "name": "",
-                "release_date": "2010-07-16",
-                "media_type": "movie"
-            }]
-        });
+    #[test]
+    fn test_tmdb_item_conversion() {
+        let item = TmdbItem {
+            id: 123,
+            title: "Inception".to_string(),
+            name: "".to_string(),
+            release_date: Some("2010-07-16".to_string()),
+            first_air_date: None,
+            media_type: Some("movie".to_string()),
+        };
 
-        let _m = server.mock("GET", "/search/movie?api_key=test&query=Inception&include_adult=false")
-            .with_status(200)
-            .with_header("content-type", "application/json")
-            .with_body(mock_response.to_string())
-            .create();
-
-        let client = TmdbClient::new(
-            TmdbConfig {
-                api_key: "test".to_string(),
-            },
-            RateLimit { calls: 10, per_seconds: 1 }
-        );
-
-        let results = client.search("Inception", MediaType::Movie, None)
-            .await
-            .unwrap();
-
-        assert_eq!(results.len(), 1);
-        assert_eq!(results[0].title, "Inception");
-        assert_eq!(results[0].ids.tmdb, Some("123".to_string()));
-    }
-
-    #[tokio::test]
-    #[ignore] // Temporarily ignored due to async runtime conflicts during migration
-    async fn test_get_details() {
-        let mut server = Server::new();
-        let mock_response = json!({
-            "id": 123,
-            "title": "Inception",
-            "release_date": "2010-07-16",
-            "external_ids": {
-                "imdb_id": "tt1375666",
-                "tvdb_id": 12345
-            }
-        });
-
-        let _m = server.mock("GET", "/movie/123?api_key=test&append_to_response=external_ids")
-            .with_status(200)
-            .with_header("content-type", "application/json")
-            .with_body(mock_response.to_string())
-            .create();
-
-        let client = TmdbClient::new(
-            TmdbConfig {
-                api_key: "test".to_string(),
-            },
-            RateLimit { calls: 10, per_seconds: 1 }
-        );
-
-        let result = client.get_details("123", MediaType::Movie)
-            .await
-            .unwrap();
+        let result: MetadataResult = item.into();
 
         assert_eq!(result.title, "Inception");
+        assert_eq!(result.ids.tmdb, Some("123".to_string()));
+        assert_eq!(result.year, Some("2010".to_string()));
+        assert_eq!(result.media_type, MediaType::Movie);
+    }
+
+    #[test]
+    fn test_tmdb_tv_item_conversion() {
+        let item = TmdbItem {
+            id: 456,
+            title: "".to_string(),
+            name: "Breaking Bad".to_string(),
+            release_date: None,
+            first_air_date: Some("2008-01-20".to_string()),
+            media_type: Some("tv".to_string()),
+        };
+
+        let result: MetadataResult = item.into();
+
+        assert_eq!(result.title, "Breaking Bad");
+        assert_eq!(result.ids.tmdb, Some("456".to_string()));
+        assert_eq!(result.year, Some("2008".to_string()));
+        assert_eq!(result.media_type, MediaType::Tv);
+    }
+
+    #[test]
+    fn test_tmdb_details_conversion() {
+        let details = TmdbDetailsResponse {
+            id: 123,
+            title: Some("Inception".to_string()),
+            name: None,
+            release_date: Some("2010-07-16".to_string()),
+            first_air_date: None,
+            external_ids: TmdbExternalIds {
+                imdb_id: Some("tt1375666".to_string()),
+                tvdb_id: Some(12345),
+            },
+        };
+
+        let result: MetadataResult = details.into();
+
+        assert_eq!(result.title, "Inception");
+        assert_eq!(result.ids.tmdb, Some("123".to_string()));
         assert_eq!(result.ids.imdb, Some("tt1375666".to_string()));
         assert_eq!(result.ids.tvdb, Some("12345".to_string()));
+        assert_eq!(result.year, Some("2010".to_string()));
+        assert_eq!(result.media_type, MediaType::Movie);
+    }
+
+    #[test]
+    fn test_tmdb_tv_details_conversion() {
+        let details = TmdbDetailsResponse {
+            id: 456,
+            title: None,
+            name: Some("Breaking Bad".to_string()),
+            release_date: None,
+            first_air_date: Some("2008-01-20".to_string()),
+            external_ids: TmdbExternalIds {
+                imdb_id: Some("tt0903747".to_string()),
+                tvdb_id: Some(12345),
+            },
+        };
+
+        let result: MetadataResult = details.into();
+
+        assert_eq!(result.title, "Breaking Bad");
+        assert_eq!(result.ids.tmdb, Some("456".to_string()));
+        assert_eq!(result.ids.imdb, Some("tt0903747".to_string()));
+        assert_eq!(result.ids.tvdb, Some("12345".to_string()));
+        assert_eq!(result.year, Some("2008".to_string()));
+        assert_eq!(result.media_type, MediaType::Tv);
+    }
+
+    #[test]
+    fn test_client_creation() {
+        let config = TmdbConfig {
+            api_key: "test_api_key".to_string(),
+        };
+
+        let client = TmdbClient::new(config);
+
+        assert_eq!(client.name(), "TMDB");
+        assert_eq!(client.config.api_key, "test_api_key");
     }
 }
