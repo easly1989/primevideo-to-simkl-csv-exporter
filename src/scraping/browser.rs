@@ -4,8 +4,10 @@ use std::time::Duration;
 
 pub struct BrowserController {
     client: Option<Client>,
-    headless: bool,
-    timeout: Duration,
+    #[allow(unused)]
+    headless: bool, // Reserved for future headless browser configuration
+    #[allow(unused)]
+    timeout: Duration, // Reserved for future timeout configuration
 }
 
 impl BrowserController {

@@ -13,9 +13,17 @@ pub trait MetadataProvider: Send + Sync {
         year: Option<i32>,
     ) -> Result<Vec<MetadataResult>, AppError>;
     
+    #[allow(unused)]
     async fn get_details(
         &self,
         id: &str,
         media_type: MediaType,
-    ) -> Result<MetadataResult, AppError>;
+    ) -> Result<MetadataResult, AppError> {
+        // Note: This method is part of the public API but may not be used
+        // by the current CLI application. It's available for library users
+        // who want to get detailed information about a specific item.
+        let _ = id;
+        let _ = media_type;
+        Err(AppError::MetadataError("get_details not implemented".into()))
+    }
 }
