@@ -5,7 +5,6 @@ pub struct WatchHistoryItem {
     pub simkl_id: Option<String>,
     pub tvdb_id: Option<String>,
     pub tmdb_id: Option<String>,
-    pub imdb_id: Option<String>,
     pub mal_id: Option<String>,
     pub media_type: MediaType,
     pub title: String,
@@ -17,7 +16,7 @@ pub struct WatchHistoryItem {
     pub memo: Option<String>,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, PartialEq, Clone, Copy)]
 #[serde(rename_all = "lowercase")]
 pub enum MediaType {
     Movie,

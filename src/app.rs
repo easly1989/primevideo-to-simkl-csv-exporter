@@ -123,7 +123,6 @@ impl App {
                 simkl_id: None, // Will be filled by metadata service
                 tvdb_id: None,
                 tmdb_id: None,
-                imdb_id: None,
                 mal_id: None,
                 media_type,
                 title: item.title,
@@ -143,7 +142,6 @@ impl App {
             simkl: crate::metadata::RateLimit { calls: 1000, per_seconds: 3600 },
             tmdb: crate::metadata::RateLimit { calls: 1000, per_seconds: 3600 },
             tvdb: crate::metadata::RateLimit { calls: 1000, per_seconds: 3600 },
-            imdb: crate::metadata::RateLimit { calls: 1000, per_seconds: 3600 },
             mal: crate::metadata::RateLimit { calls: 1000, per_seconds: 3600 },
         };
 
@@ -153,7 +151,6 @@ impl App {
             self.config.simkl.clone(),
             self.config.tmdb.clone(),
             self.config.tvdb.clone(),
-            self.config.imdb.clone(),
             self.config.mal.clone(),
         );
         let processed = HistoryProcessor::process(watch_items, &metadata_service, &mut progress_tracker).await?;

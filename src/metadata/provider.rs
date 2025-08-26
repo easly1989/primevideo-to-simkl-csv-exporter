@@ -1,6 +1,9 @@
 use async_trait::async_trait;
 use crate::error::AppError;
-use crate::metadata::models::{MediaType, MetadataResult};
+use crate::{
+    models::MediaType,
+    metadata::models::MetadataResult,
+};
 
 #[async_trait]
 pub trait MetadataProvider: Send + Sync {

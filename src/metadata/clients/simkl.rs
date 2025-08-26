@@ -3,7 +3,8 @@ use reqwest::Client;
 use crate::{
     config::SimklConfig,
     error::AppError,
-    metadata::{MediaType, MetadataResult, MediaIds, MetadataProvider},
+    models::MediaType,
+    metadata::{MetadataResult, MediaIds, MetadataProvider},
 };
 
 pub struct SimklClient {
@@ -127,7 +128,6 @@ struct SimklSearchItem {
 #[derive(serde::Deserialize)]
 struct SimklIds {
     simkl: String,
-    imdb: Option<String>,
     tmdb: Option<String>,
     tvdb: Option<String>,
 }
@@ -144,7 +144,6 @@ impl From<SimklSearchItem> for MetadataResult {
         MetadataResult {
             ids: MediaIds {
                 simkl: Some(item.ids.simkl),
-                imdb: item.ids.imdb,
                 tmdb: item.ids.tmdb,
                 tvdb: item.ids.tvdb,
                 ..Default::default()
@@ -161,7 +160,6 @@ impl From<SimklDetailsResponse> for MetadataResult {
         MetadataResult {
             ids: MediaIds {
                 simkl: Some(details.ids.simkl),
-                imdb: details.ids.imdb,
                 tmdb: details.ids.tmdb,
                 tvdb: details.ids.tvdb,
                 ..Default::default()
@@ -184,7 +182,6 @@ mod tests {
             year: Some("2010".to_string()),
             ids: SimklIds {
                 simkl: "123".to_string(),
-                imdb: Some("tt1375666".to_string()),
                 tmdb: Some("12345".to_string()),
                 tvdb: None,
             },
@@ -195,7 +192,6 @@ mod tests {
         assert_eq!(result.title, "Inception");
         assert_eq!(result.year, Some("2010".to_string()));
         assert_eq!(result.ids.simkl, Some("123".to_string()));
-        assert_eq!(result.ids.imdb, Some("tt1375666".to_string()));
         assert_eq!(result.ids.tmdb, Some("12345".to_string()));
         assert_eq!(result.ids.tvdb, None);
         assert_eq!(result.media_type, MediaType::Movie);
@@ -208,7 +204,6 @@ mod tests {
             year: Some("2008".to_string()),
             ids: SimklIds {
                 simkl: "456".to_string(),
-                imdb: Some("tt0903747".to_string()),
                 tmdb: Some("12345".to_string()),
                 tvdb: Some("789".to_string()),
             },
@@ -219,7 +214,6 @@ mod tests {
         assert_eq!(result.title, "Breaking Bad");
         assert_eq!(result.year, Some("2008".to_string()));
         assert_eq!(result.ids.simkl, Some("456".to_string()));
-        assert_eq!(result.ids.imdb, Some("tt0903747".to_string()));
         assert_eq!(result.ids.tmdb, Some("12345".to_string()));
         assert_eq!(result.ids.tvdb, Some("789".to_string()));
         assert_eq!(result.media_type, MediaType::Movie);
@@ -232,7 +226,6 @@ mod tests {
             year: None,
             ids: SimklIds {
                 simkl: "999".to_string(),
-                imdb: None,
                 tmdb: None,
                 tvdb: None,
             },
@@ -243,7 +236,6 @@ mod tests {
         assert_eq!(result.title, "Unknown Show");
         assert_eq!(result.year, None);
         assert_eq!(result.ids.simkl, Some("999".to_string()));
-        assert_eq!(result.ids.imdb, None);
         assert_eq!(result.ids.tmdb, None);
         assert_eq!(result.ids.tvdb, None);
         assert_eq!(result.media_type, MediaType::Movie);

@@ -2,12 +2,13 @@ mod clients;
 mod models;
 mod provider;
 
-pub use models::{ServiceType, MediaType, MetadataResult, MediaIds, RateLimitConfig, RateLimit, PriorityOrder};
+pub use models::{ServiceType, MetadataResult, MediaIds, RateLimitConfig, RateLimit, PriorityOrder};
+pub use crate::models::MediaType;
 
 // Internal imports needed for implementation
 use crate::config::{SimklConfig, TmdbConfig, TvdbConfig, MalConfig};
 use crate::error::AppError;
-use clients::{SimklClient, TmdbClient, TvdbClient, ImdbClient, MalClient};
+use clients::{SimklClient, TmdbClient, TvdbClient, MalClient};
 use provider::MetadataProvider;
 
 pub struct MetadataService {
@@ -22,7 +23,6 @@ impl MetadataService {
         simkl_config: SimklConfig,
         tmdb_config: TmdbConfig,
         tvdb_config: TvdbConfig,
-        imdb_config: crate::config::ImdbConfig,
         mal_config: MalConfig,
     ) -> Self {
         let mut providers: Vec<Box<dyn MetadataProvider>> = Vec::new();
@@ -37,9 +37,6 @@ impl MetadataService {
                 )),
                 ServiceType::Tvdb => providers.push(Box::new(
                     TvdbClient::new(tvdb_config.clone())
-                )),
-                ServiceType::Imdb => providers.push(Box::new(
-                    ImdbClient::new(imdb_config.clone())
                 )),
                 ServiceType::Mal => providers.push(Box::new(
                     MalClient::new(mal_config.clone())
@@ -57,8 +54,9 @@ impl MetadataService {
         year: Option<&str>,
     ) -> Result<MetadataResult, AppError> {
         let year_int = year.and_then(|y| y.parse().ok());
+        let media_type_clone = media_type.clone();
         for provider in &self.providers {
-            match provider.search(title, media_type, year_int).await {
+            match provider.search(title, media_type_clone.clone(), year_int).await {
                 Ok(results) => {
                     if let Some(result) = results.into_iter().next() {
                         return Ok(result);

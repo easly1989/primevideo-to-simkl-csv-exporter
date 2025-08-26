@@ -1,7 +1,8 @@
 use crate::{
     error::AppError,
-    metadata::{MetadataService, MediaType as MetadataMediaType, MetadataResult},
-    models::{WatchHistoryItem, MediaType as ModelsMediaType},
+    metadata::{MetadataService, MetadataResult},
+    models::MediaType,
+    models::WatchHistoryItem,
     processor::progress_tracker::ProgressTracker,
 };
 #[cfg(test)]
@@ -15,7 +16,7 @@ pub trait MetadataLookup {
     async fn lookup(
         &self,
         title: &str,
-        media_type: MetadataMediaType,
+        media_type: MediaType,
         year: Option<&str>,
     ) -> Result<MetadataResult, AppError>;
 }
@@ -25,7 +26,7 @@ impl MetadataLookup for MetadataService {
     async fn lookup(
         &self,
         title: &str,
-        media_type: MetadataMediaType,
+        media_type: MediaType,
         year: Option<&str>,
     ) -> Result<MetadataResult, AppError> {
         MetadataService::lookup(self, title, media_type, year).await
@@ -37,7 +38,7 @@ impl MetadataLookup for &MetadataService {
     async fn lookup(
         &self,
         title: &str,
-        media_type: MetadataMediaType,
+        media_type: MediaType,
         year: Option<&str>,
     ) -> Result<MetadataResult, AppError> {
         MetadataService::lookup(*self, title, media_type, year).await
@@ -74,12 +75,12 @@ impl HistoryProcessor {
             progress.log_processing(&item.title);
 
             let media_type = if item.episode.is_some() {
-                MetadataMediaType::Tv
+                MediaType::Tv
             } else {
-                MetadataMediaType::Movie
+                MediaType::Movie
             };
 
-            if media_type == MetadataMediaType::Tv {
+            if media_type == MediaType::Tv {
                 if let Some(existing) = tv_shows.get_mut(&item.title) {
                     if item.date > existing.date {
                         *existing = item;
@@ -130,7 +131,7 @@ impl HistoryProcessor {
             let mut last_error = None;
 
             while attempts < 3 {
-                match metadata.lookup(&item.title, MetadataMediaType::Tv, None).await {
+                match metadata.lookup(&item.title, MediaType::Tv, None).await {
                     Ok(meta) => {
                         processed.push(ProcessedItem::from_watch_history(item, meta));
                         break;
@@ -160,7 +161,7 @@ impl HistoryProcessor {
 pub struct ProcessedItem {
     pub title: String,
     pub date: String,
-    pub media_type: ModelsMediaType,
+    pub media_type: MediaType,
     pub metadata: MetadataResult,
     pub episode: Option<String>,
 }
@@ -171,9 +172,9 @@ impl ProcessedItem {
             title: item.title,
             date: item.date,
             media_type: if item.episode.is_some() {
-                ModelsMediaType::Tv
+                MediaType::Tv
             } else {
-                ModelsMediaType::Movie
+                MediaType::Movie
             },
             metadata,
             episode: item.episode,
@@ -212,7 +213,7 @@ mod tests {
         async fn lookup(
             &self,
             title: &str,
-            media_type: MetadataMediaType,
+            media_type: MediaType,
             _year: Option<&str>,
         ) -> Result<MetadataResult, AppError> {
             self.call_count.fetch_add(1, Ordering::SeqCst);
@@ -226,7 +227,6 @@ mod tests {
                     simkl: Some(format!("simkl_{}", title)),
                     tvdb: Some(format!("tvdb_{}", title)),
                     tmdb: Some(format!("tmdb_{}", title)),
-                    imdb: Some(format!("imdb_{}", title)),
                     mal: Some(format!("mal_{}", title)),
                 },
                 title: title.to_string(),
@@ -241,7 +241,7 @@ mod tests {
         async fn lookup(
             &self,
             title: &str,
-            media_type: MetadataMediaType,
+            media_type: MediaType,
             year: Option<&str>,
         ) -> Result<MetadataResult, AppError> {
             MockMetadataService::lookup(*self, title, media_type, year).await
@@ -258,9 +258,8 @@ mod tests {
                 simkl_id: None,
                 tvdb_id: None,
                 tmdb_id: None,
-                imdb_id: None,
                 mal_id: None,
-                media_type: ModelsMediaType::Tv,
+                media_type: MediaType::Tv,
                 title: "Show A".to_string(),
                 year: None,
                 episode: Some("S1E1".to_string()),
@@ -273,9 +272,8 @@ mod tests {
                 simkl_id: None,
                 tvdb_id: None,
                 tmdb_id: None,
-                imdb_id: None,
                 mal_id: None,
-                media_type: ModelsMediaType::Tv,
+                media_type: MediaType::Tv,
                 title: "Show A".to_string(),
                 year: None,
                 episode: Some("S1E2".to_string()),
@@ -303,9 +301,8 @@ mod tests {
             simkl_id: None,
             tvdb_id: None,
             tmdb_id: None,
-            imdb_id: None,
             mal_id: None,
-            media_type: ModelsMediaType::Movie,
+            media_type: MediaType::Movie,
             title: format!("Movie {}", i),
             year: None,
             episode: None,
@@ -333,9 +330,8 @@ mod tests {
             simkl_id: None,
             tvdb_id: None,
             tmdb_id: None,
-            imdb_id: None,
             mal_id: None,
-            media_type: ModelsMediaType::Movie,
+            media_type: MediaType::Movie,
             title: "Movie".to_string(),
             year: None,
             episode: None,

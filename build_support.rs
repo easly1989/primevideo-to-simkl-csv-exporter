@@ -14,9 +14,6 @@ pub fn generate_config_if_needed(dest_path: &std::path::Path) {
   "tvdb": {
     "api_key": "YOUR_TVDB_API_KEY"
   },
-  "imdb": {
-    "api_key": "YOUR_IMDB_API_KEY"
-  },
   "mal": {
     "client_id": "YOUR_MAL_CLIENT_ID",
     "client_secret": "YOUR_MAL_CLIENT_SECRET"

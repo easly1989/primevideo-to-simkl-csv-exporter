@@ -1,7 +1,7 @@
 use crate::{
     config::OutputConfig,
     error::AppError,
-    models::MediaType as ModelsMediaType,
+    models::MediaType,
     processor::history_processor::ProcessedItem,
 };
 use csv::Writer;
@@ -35,19 +35,18 @@ impl CsvGenerator {
             let ids = item.metadata.ids;
             let last_ep = item.episode.unwrap_or_default();
             let watch_status = match item.media_type {
-                ModelsMediaType::Movie => "completed",
-                ModelsMediaType::Tv => if last_ep.is_empty() { "completed" } else { "watching" },
+                MediaType::Movie => "completed",
+                MediaType::Tv => if last_ep.is_empty() { "completed" } else { "watching" },
             };
 
             wtr.write_record(&[
                 ids.simkl.unwrap_or_default(),
                 ids.tvdb.unwrap_or_default(),
                 ids.tmdb.unwrap_or_default(),
-                ids.imdb.unwrap_or_default(),
                 ids.mal.unwrap_or_default(),
                 match item.media_type {
-                    ModelsMediaType::Movie => "movie".to_string(),
-                    ModelsMediaType::Tv => "tv".to_string(),
+                    MediaType::Movie => "movie".to_string(),
+                    MediaType::Tv => "tv".to_string(),
                 },
                 item.title,
                 item.metadata.year.unwrap_or_default(),

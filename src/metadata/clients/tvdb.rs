@@ -3,7 +3,8 @@ use reqwest::Client;
 use crate::{
     config::TvdbConfig,
     error::AppError,
-    metadata::{MediaType, MetadataResult, MediaIds, MetadataProvider},
+    models::MediaType,
+    metadata::{MetadataResult, MediaIds, MetadataProvider},
 };
 
 pub struct TvdbClient {
@@ -175,8 +176,6 @@ struct TvdbDetailsItem {
     series_name: String,
     #[serde(rename = "firstAired")]
     first_aired: Option<String>,
-    #[serde(rename = "imdbId")]
-    imdb_id: Option<String>,
 }
 
 impl From<TvdbSearchItem> for MetadataResult {
@@ -206,7 +205,6 @@ impl From<TvdbDetailsItem> for MetadataResult {
         MetadataResult {
             ids: MediaIds {
                 tvdb: Some(item.id.to_string()),
-                imdb: item.imdb_id,
                 ..Default::default()
             },
             title: item.series_name,
@@ -258,33 +256,13 @@ mod tests {
             id: 123,
             series_name: "Breaking Bad".to_string(),
             first_aired: Some("2008-01-20".to_string()),
-            imdb_id: Some("tt0903747".to_string()),
         };
 
         let result: MetadataResult = details.into();
 
         assert_eq!(result.title, "Breaking Bad");
         assert_eq!(result.ids.tvdb, Some("123".to_string()));
-        assert_eq!(result.ids.imdb, Some("tt0903747".to_string()));
         assert_eq!(result.year, Some("2008".to_string()));
-        assert_eq!(result.media_type, MediaType::Tv);
-    }
-
-    #[test]
-    fn test_tvdb_details_without_imdb() {
-        let details = TvdbDetailsItem {
-            id: 789,
-            series_name: "Another Show".to_string(),
-            first_aired: Some("2015-05-10".to_string()),
-            imdb_id: None,
-        };
-
-        let result: MetadataResult = details.into();
-
-        assert_eq!(result.title, "Another Show");
-        assert_eq!(result.ids.tvdb, Some("789".to_string()));
-        assert_eq!(result.ids.imdb, None);
-        assert_eq!(result.year, Some("2015".to_string()));
         assert_eq!(result.media_type, MediaType::Tv);
     }
 

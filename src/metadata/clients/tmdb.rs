@@ -44,7 +44,7 @@ impl TmdbClient {
         let response = self.client
             .get(&url)
             .query(&query)
-            .header("Authorization", format!("Bearer {}", self.config.access_token))
+            .header("Authorization", format!("Bearer {}", self.config.api_key))
             .send()
             .await?;
 
@@ -77,7 +77,7 @@ impl TmdbClient {
 
         let response = self.client
             .get(&url)
-            .header("Authorization", format!("Bearer {}", self.config.access_token))
+            .header("Authorization", format!("Bearer {}", self.config.api_key))
             .send()
             .await?;
 
@@ -144,6 +144,7 @@ struct TmdbDetailsResponse {
 
 #[derive(serde::Deserialize)]
 struct TmdbExternalIds {
+    #[allow(dead_code)]
     imdb_id: Option<String>,
     tvdb_id: Option<i32>,
 }
@@ -180,7 +181,6 @@ impl From<TmdbDetailsResponse> for MetadataResult {
         MetadataResult {
             ids: MediaIds {
                 tmdb: Some(details.id.to_string()),
-                imdb: details.external_ids.imdb_id,
                 tvdb: details.external_ids.tvdb_id.map(|id| id.to_string()),
                 ..Default::default()
             },
@@ -215,7 +215,7 @@ mod tests {
         assert_eq!(result.title, "Inception");
         assert_eq!(result.ids.tmdb, Some("123".to_string()));
         assert_eq!(result.year, Some("2010".to_string()));
-        assert_eq!(result.media_type, MediaType::Movie);
+        assert_eq!(result.media_type, crate::models::MediaType::Movie);
     }
 
     #[test]
@@ -255,7 +255,6 @@ mod tests {
 
         assert_eq!(result.title, "Inception");
         assert_eq!(result.ids.tmdb, Some("123".to_string()));
-        assert_eq!(result.ids.imdb, Some("tt1375666".to_string()));
         assert_eq!(result.ids.tvdb, Some("12345".to_string()));
         assert_eq!(result.year, Some("2010".to_string()));
         assert_eq!(result.media_type, MediaType::Movie);
@@ -279,7 +278,6 @@ mod tests {
 
         assert_eq!(result.title, "Breaking Bad");
         assert_eq!(result.ids.tmdb, Some("456".to_string()));
-        assert_eq!(result.ids.imdb, Some("tt0903747".to_string()));
         assert_eq!(result.ids.tvdb, Some("12345".to_string()));
         assert_eq!(result.year, Some("2008".to_string()));
         assert_eq!(result.media_type, MediaType::Tv);
@@ -288,12 +286,12 @@ mod tests {
     #[test]
     fn test_client_creation() {
         let config = TmdbConfig {
-            access_token: "test_access_token".to_string(),
+            api_key: "test_api_key".to_string(),
         };
 
         let client = TmdbClient::new(config);
 
         assert_eq!(client.name(), "TMDB");
-        assert_eq!(client.config.access_token, "test_access_token");
+        assert_eq!(client.config.api_key, "test_api_key");
     }
 }

@@ -8,7 +8,6 @@ pub struct AppConfig {
     pub simkl: SimklConfig,
     pub tmdb: TmdbConfig,
     pub tvdb: TvdbConfig,
-    pub imdb: ImdbConfig,
     pub mal: MalConfig,
     pub amazon: AmazonConfig,
     pub output: OutputConfig,
@@ -24,8 +23,8 @@ pub struct SimklConfig {
 
 #[derive(Debug, Clone, Deserialize, Serialize, Validate)]
 pub struct TmdbConfig {
-    #[validate(length(min = 1, message = "Access token cannot be empty"))]
-    pub access_token: String,
+    #[validate(length(min = 1, message = "API key cannot be empty"))]
+    pub api_key: String,
 }
 
 #[derive(Debug, Clone, Deserialize, Serialize, Validate)]
@@ -42,11 +41,6 @@ pub struct MalConfig {
     pub client_secret: String,
 }
 
-#[derive(Debug, Clone, Deserialize, Serialize, Validate)]
-pub struct ImdbConfig {
-    #[validate(length(min = 1, message = "API key cannot be empty"))]
-    pub api_key: String,
-}
 
 #[derive(Debug, Clone, Deserialize, Serialize, Validate)]
 pub struct AmazonConfig {
