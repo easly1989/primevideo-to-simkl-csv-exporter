@@ -7,7 +7,8 @@ Help me pay off my home loan → [Donate on PayPal](https://paypal.me/ruggieroca
 
 ## Features
 
-- **Automatic scraping** of Prime Video watch history
+- **Manual login required** - secure authentication with Prime Video
+- **Automated scraping** of Prime Video watch history after login
 - **Metadata enrichment** from multiple sources:
   - [Simkl](https://simkl.com/) - primary metadata provider
   - [TMDB](https://www.themoviedb.org/) - movie and TV show details
@@ -15,7 +16,7 @@ Help me pay off my home loan → [Donate on PayPal](https://paypal.me/ruggieroca
   - [MyAnimeList](https://myanimelist.net/) - anime-specific metadata (optional)
 - **Smart deduplication** - only includes last watched episode for TV shows
 - **CSV generation** in Simkl import format
-- **Automatic configuration** - creates config file on first run
+- **Easy configuration** - generates config file during build with helpful comments
 - **Comprehensive validation** of API keys and credentials
 - **Concurrent processing** for fast metadata lookups
 - **Robust error handling** with automatic retries
@@ -29,8 +30,8 @@ Help me pay off my home loan → [Donate on PayPal](https://paypal.me/ruggieroca
   - Firefox: [Download GeckoDriver](https://github.com/mozilla/geckodriver/releases)
   - **Installation**:
     - Download the appropriate driver for your browser
-    - Add it to your system PATH, OR
-    - Specify the full path in config.json under "browser.driver_path"
+    - Add it to your system PATH
+    - **Note**: Driver path configuration in config.json is not required - the application connects to localhost:4444 automatically
   - Verify installation by running in terminal:
     ```bash
     chromedriver --version  # For Chrome
@@ -54,14 +55,10 @@ cd primevideo-to-simkl-csv-exporter
 ```bash
 cargo build --release
 ```
+This will automatically generate a `config.json` file in the target directory (`target/release/`).
 
-3. Run the application to generate config file:
-```bash
-cargo run --release
-```
-This will create a `config.json` file in the target directory (`target/release/` or `target/debug/`).
-
-4. Edit `config.json` with your credentials:
+3. Edit `config.json` with your credentials:
+**Important**: The config file must be properly edited before the application can function correctly. The application will exit with an error message if the config is not properly configured.
 ```json
 {
   "simkl": {
@@ -79,14 +76,15 @@ This will create a `config.json` file in the target directory (`target/release/`
     "client_secret": "YOUR_MAL_CLIENT_SECRET"
   },
   "amazon": {
-    "email": "YOUR_AMAZON_EMAIL",
-    "password": "YOUR_AMAZON_PASSWORD"
+    "email": "YOUR_AMAZON_EMAIL (optional for manual login)",
+    "password": "YOUR_AMAZON_PASSWORD (optional for manual login)"
   },
   "output": {
     "path": "./export.csv"
   }
 }
 ```
+Replace all placeholder values (starting with "YOUR_") with your actual API keys and credentials.
 
 > **Security Note**: The `config.json` contains sensitive credentials. Keep it secure and never commit to version control.
 
@@ -98,10 +96,12 @@ cargo run --release
 ```
 
 The application will:
-1. Launch a browser window for Amazon login
-2. Scrape your watch history
-3. Enrich items with metadata
-4. Generate `export.csv` in Simkl format
+1. Launch a browser window
+2. **Require manual login** to Amazon Prime Video (autologin has been disabled)
+3. Guide you through the login process with clear instructions
+4. Scrape your watch history after successful login
+5. Enrich items with metadata
+6. Generate `export.csv` in Simkl format
 
 ## CSV Format
 
@@ -131,9 +131,11 @@ The generated CSV contains these columns:
 ## Troubleshooting
 
 - **Login Issues**:
-  - Complete login within 5 minutes
-  - For 2FA, enter code within 60 seconds
-  - Check `login-error.png` for diagnostics
+  - Complete manual login within 10 minutes when prompted
+  - The application will guide you through the login process
+  - Ensure you're on the Prime Video watch history page after login
+  - For 2FA, complete the authentication process as required
+  - Check `login-error.png` for diagnostics if issues persist
 
 - **Large Watch Histories**:
   - Processing may take time (1-2 items/second)
@@ -145,17 +147,12 @@ The generated CSV contains these columns:
     ```bash
     chromedriver --version  # Should output version
     ```
-  - Run WebDriver manually before starting the app:
+  - Start WebDriver manually before running the app:
     - ChromeDriver: `chromedriver --port=4444`
     - GeckoDriver: `geckodriver --port 4444`
-  - Or specify WebDriver path in config.json:
-    ```json
-    "browser": {
-      "driver_path": "C:/path/to/chromedriver.exe"
-    }
-    ```
   - If using Chrome, ensure Chrome browser is installed
   - If using Firefox, ensure Firefox browser is installed
+  - **Note**: WebDriver path configuration is not required in config.json - the application connects automatically to localhost:4444
 
 - **Metadata Failures**:
   - Verify API keys are valid

@@ -52,11 +52,11 @@ impl App {
     async fn login(&mut self) -> Result<(), AppError> {
         {
             let mut progress = self.progress.lock().await;
-            progress.update("Logging in");
+            progress.update("Logging in (manual required)");
         }
 
         if let Some(scraper) = &mut self.scraper {
-            scraper.login(true).await?;
+            scraper.login(false).await?;
         }
         Ok(())
     }

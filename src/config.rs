@@ -44,9 +44,9 @@ pub struct MalConfig {
 
 #[derive(Debug, Clone, Deserialize, Serialize, Validate)]
 pub struct AmazonConfig {
-    #[validate(email(message = "Invalid email format"))]
+    #[validate(email(message = "Invalid email format (optional for manual login)"))]
     pub email: String,
-    #[validate(length(min = 1, message = "Password cannot be empty"))]
+    #[validate(length(min = 1, message = "Password cannot be empty (optional for manual login)"))]
     pub password: String,
 }
 
@@ -115,14 +115,11 @@ impl AppConfig {
     "client_secret": "YOUR_MAL_CLIENT_SECRET"
   },
   "amazon": {
-    "email": "YOUR_AMAZON_EMAIL",
-    "password": "YOUR_AMAZON_PASSWORD"
+    "email": "YOUR_AMAZON_EMAIL (optional for manual login)",
+    "password": "YOUR_AMAZON_PASSWORD (optional for manual login)"
   },
   "output": {
     "path": "./export.csv"
-  },
-  "browser": {
-    "driver_path": ""
   }
 }"#;
 

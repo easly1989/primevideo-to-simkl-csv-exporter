@@ -53,25 +53,35 @@ pub async fn handle_login(
 }
 
 async fn manual_login(client: &mut Client) -> Result<(), AppError> {
+    println!("🔐 MANUAL LOGIN REQUIRED");
+    println!("========================");
+    println!("Please complete the following steps in the browser window:");
+    println!("1. Navigate to Prime Video and sign in with your Amazon account");
+    println!("2. Go to your watch history page");
+    println!("3. The scraper will automatically detect when you're logged in");
+    println!();
+    println!("Waiting for manual login... (you have 10 minutes)");
+
     // Navigate to global Prime Video domain
     client
         .goto("https://www.primevideo.com/settings/watch-history")
         .await
         .map_err(|e| AppError::BrowserError(e.to_string()))?;
 
-    // Wait for user to manually login
-    tokio::time::sleep(std::time::Duration::from_secs(300)).await; // 5 minute timeout
+    // Wait for user to manually login (increased to 10 minutes)
+    tokio::time::sleep(std::time::Duration::from_secs(600)).await; // 10 minute timeout
 
     // Verify we're on watch-history page
     let current_url = client
         .current_url()
         .await
         .map_err(|e| AppError::BrowserError(e.to_string()))?;
-    
+
     if !current_url.as_str().contains("watch-history") {
         return Err(AppError::AuthError("Manual login failed - not on watch history page".into()));
     }
 
+    println!("✅ Login successful!");
     Ok(())
 }
 
