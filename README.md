@@ -35,19 +35,14 @@ Help me pay off my home loan –> [Donate on PayPal](https://paypal.me/ruggieroc
    cd primevideo-to-simkl-csv-exporter
    ```
 
-2. Build the project:
+2. Build the project (this will generate the default config file):
    ```bash
    cargo build --release
    ```
 
-3. Run the application for the first time:
-   ```bash
-   cargo run --release
-   ```
+   This will create a default `config.json` file in the target directory (`target/release/` for release builds or `target/debug/` for debug builds).
 
-   The application will automatically create a `config.json` file in the executable directory with default values.
-
-4. Edit the generated `config.json` file with your API keys and Amazon credentials:
+3. Edit the generated `config.json` file with your API keys and Amazon credentials:
    ```json
    {
      "simkl": {

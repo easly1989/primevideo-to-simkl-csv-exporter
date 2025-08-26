@@ -66,14 +66,14 @@ impl AppConfig {
         // Get the executable's directory
         let exe_path = std::env::current_exe()?;
         let exe_dir = exe_path.parent().unwrap_or_else(|| std::path::Path::new("."));
-
-        // Check if config exists in executable directory, if not create default
         let config_path = exe_dir.join("config.json");
+
+        // Config file should be generated during build - check if exists
         if !config_path.exists() {
-            Self::create_default_config(&config_path)?;
-            println!("Created default config file at: {}", config_path.display());
-            println!("Please edit the config file with your API keys and credentials before running the application.");
-            return Err("Please configure your API keys in the config file".into());
+            return Err(format!(
+                "Config file not found at: {}. Please rebuild the project to generate the default config.",
+                config_path.display()
+            ).into());
         }
 
         let mut builder = Config::builder()
@@ -98,38 +98,6 @@ impl AppConfig {
         })?;
 
         Ok(app_config)
-    }
-
-    fn create_default_config(config_path: &std::path::Path) -> Result<(), Box<dyn std::error::Error>> {
-        let default_config = r#"{
-  "simkl": {
-    "client_id": "YOUR_SIMKL_CLIENT_ID",
-    "client_secret": "YOUR_SIMKL_CLIENT_SECRET"
-  },
-  "tmdb": {
-    "access_token": "YOUR_TMDB_ACCESS_TOKEN"
-  },
-  "tvdb": {
-    "api_key": "YOUR_TVDB_API_KEY"
-  },
-  "imdb": {
-    "api_key": "YOUR_IMDB_API_KEY"
-  },
-  "mal": {
-    "client_id": "YOUR_MAL_CLIENT_ID",
-    "client_secret": "YOUR_MAL_CLIENT_SECRET"
-  },
-  "amazon": {
-    "email": "YOUR_AMAZON_EMAIL",
-    "password": "YOUR_AMAZON_PASSWORD"
-  },
-  "output": {
-    "path": "./export.csv"
-  }
-}"#;
-
-        std::fs::write(config_path, default_config)?;
-        Ok(())
     }
 
     pub fn validate(&self) -> Result<(), validator::ValidationErrors> {
