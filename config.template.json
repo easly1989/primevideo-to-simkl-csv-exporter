@@ -22,5 +22,8 @@
   },
   "output": {
     "path": "./export.csv"
+  },
+  "browser": {
+    "driver_path": ""
   }
 }

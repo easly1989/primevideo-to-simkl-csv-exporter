@@ -44,7 +44,7 @@ impl TmdbClient {
         let response = self.client
             .get(&url)
             .query(&query)
-            .header("Authorization", format!("Bearer {}", self.config.api_key))
+            .header("Authorization", format!("Bearer {}", self.config.access_token))
             .send()
             .await?;
 
@@ -77,7 +77,7 @@ impl TmdbClient {
 
         let response = self.client
             .get(&url)
-            .header("Authorization", format!("Bearer {}", self.config.api_key))
+            .header("Authorization", format!("Bearer {}", self.config.access_token))
             .send()
             .await?;
 
@@ -286,12 +286,12 @@ mod tests {
     #[test]
     fn test_client_creation() {
         let config = TmdbConfig {
-            api_key: "test_api_key".to_string(),
+            access_token: "test_access_token".to_string(),
         };
 
         let client = TmdbClient::new(config);
 
         assert_eq!(client.name(), "TMDB");
-        assert_eq!(client.config.api_key, "test_api_key");
+        assert_eq!(client.config.access_token, "test_access_token");
     }
 }

@@ -23,8 +23,8 @@ pub struct SimklConfig {
 
 #[derive(Debug, Clone, Deserialize, Serialize, Validate)]
 pub struct TmdbConfig {
-    #[validate(length(min = 1, message = "API key cannot be empty"))]
-    pub api_key: String,
+    #[validate(length(min = 1, message = "Access token cannot be empty"))]
+    pub access_token: String,
 }
 
 #[derive(Debug, Clone, Deserialize, Serialize, Validate)]
@@ -62,12 +62,12 @@ impl AppConfig {
         let exe_dir = exe_path.parent().unwrap_or_else(|| std::path::Path::new("."));
         let config_path = exe_dir.join("config.json");
 
-        // Config file should be generated during build - check if exists
+        // Create default config if it doesn't exist
         if !config_path.exists() {
-            return Err(format!(
-                "Config file not found at: {}. Please rebuild the project to generate the default config.",
-                config_path.display()
-            ).into());
+            Self::create_default_config(&config_path)?;
+            println!("Created default config file at: {}", config_path.display());
+            println!("Please edit the config file with your API keys and credentials before running the application.");
+            return Err("Please configure your API keys in the config file".into());
         }
 
         let mut builder = Config::builder()
@@ -96,5 +96,37 @@ impl AppConfig {
 
     pub fn validate(&self) -> Result<(), validator::ValidationErrors> {
         validator::Validate::validate(self)
+    }
+
+    fn create_default_config(config_path: &std::path::Path) -> Result<(), Box<dyn std::error::Error>> {
+        let default_config = r#"{
+  "simkl": {
+    "client_id": "YOUR_SIMKL_CLIENT_ID",
+    "client_secret": "YOUR_SIMKL_CLIENT_SECRET"
+  },
+  "tmdb": {
+    "access_token": "YOUR_TMDB_ACCESS_TOKEN"
+  },
+  "tvdb": {
+    "api_key": "YOUR_TVDB_API_KEY"
+  },
+  "mal": {
+    "client_id": "YOUR_MAL_CLIENT_ID",
+    "client_secret": "YOUR_MAL_CLIENT_SECRET"
+  },
+  "amazon": {
+    "email": "YOUR_AMAZON_EMAIL",
+    "password": "YOUR_AMAZON_PASSWORD"
+  },
+  "output": {
+    "path": "./export.csv"
+  },
+  "browser": {
+    "driver_path": ""
+  }
+}"#;
+
+        std::fs::write(config_path, default_config)?;
+        Ok(())
     }
 }

@@ -24,6 +24,18 @@ Help me pay off my home loan → [Donate on PayPal](https://paypal.me/ruggieroca
 
 - Rust 1.70+ ([Install Rust](https://rustup.rs/))
 - Amazon Prime Video account
+- WebDriver for browser automation:
+  - Chrome: [Download ChromeDriver](https://chromedriver.chromium.org/downloads) (match your Chrome version)
+  - Firefox: [Download GeckoDriver](https://github.com/mozilla/geckodriver/releases)
+  - **Installation**:
+    - Download the appropriate driver for your browser
+    - Add it to your system PATH, OR
+    - Specify the full path in config.json under "browser.driver_path"
+  - Verify installation by running in terminal:
+    ```bash
+    chromedriver --version  # For Chrome
+    geckodriver --version   # For Firefox
+    ```
 - API credentials:
   - [Simkl Client ID/Secret](https://simkl.com/settings/developer/new/)
   - [TMDB API Read Access Token](https://www.themoviedb.org/settings/api)
@@ -126,6 +138,24 @@ The generated CSV contains these columns:
 - **Large Watch Histories**:
   - Processing may take time (1-2 items/second)
   - API rate limits are automatically handled
+
+- **WebDriver Issues**:
+  - Ensure ChromeDriver/GeckoDriver is installed and in PATH
+  - Verify installation:
+    ```bash
+    chromedriver --version  # Should output version
+    ```
+  - Run WebDriver manually before starting the app:
+    - ChromeDriver: `chromedriver --port=4444`
+    - GeckoDriver: `geckodriver --port 4444`
+  - Or specify WebDriver path in config.json:
+    ```json
+    "browser": {
+      "driver_path": "C:/path/to/chromedriver.exe"
+    }
+    ```
+  - If using Chrome, ensure Chrome browser is installed
+  - If using Firefox, ensure Firefox browser is installed
 
 - **Metadata Failures**:
   - Verify API keys are valid
