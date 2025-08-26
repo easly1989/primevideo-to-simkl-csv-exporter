@@ -37,11 +37,13 @@ Help me pay off my home loan → [Donate on PayPal](https://paypal.me/ruggieroca
     chromedriver --version  # For Chrome
     geckodriver --version   # For Firefox
     ```
-- API credentials:
-  - [Simkl Client ID/Secret](https://simkl.com/settings/developer/new/)
-  - [TMDB API Read Access Token](https://www.themoviedb.org/settings/api)
-  - (Optional) [TVDB API Key](https://thetvdb.com/api-information)
-  - (Optional) [MyAnimeList Client ID/Secret](https://myanimelist.net/apiconfig/create)
+- API credentials (required for metadata enrichment):
+  - **Simkl** (Primary provider): [Create app](https://simkl.com/settings/developer/new/) → Get Client ID/Secret
+  - **TMDB** (Movie/TV details): [Get API Key](https://www.themoviedb.org/settings/api) → Use "API Read Access Token"
+  - **TVDB** (TV show metadata): [Get API Key](https://thetvdb.com/api-information) → Register for free
+  - **MyAnimeList** (Anime metadata): [Create app](https://myanimelist.net/apiconfig/create) → Get Client ID/Secret
+
+  **Note**: Without proper API keys, the application will fail with "All providers failed". You can skip optional providers by leaving them as placeholder values.
 
 ## Installation & Setup
 
@@ -99,9 +101,10 @@ The application will:
 1. Launch a browser window
 2. **Require manual login** to Amazon Prime Video (autologin has been disabled)
 3. Guide you through the login process with clear instructions
-4. Scrape your watch history after successful login
-5. Enrich items with metadata
-6. Generate `export.csv` in Simkl format
+4. **Wait for you to press Enter** in the terminal once you've logged in
+5. Verify you're on the correct page and proceed with scraping
+6. Enrich items with metadata
+7. Generate `export.csv` in Simkl format
 
 ## CSV Format
 
@@ -131,11 +134,13 @@ The generated CSV contains these columns:
 ## Troubleshooting
 
 - **Login Issues**:
-  - Complete manual login within 10 minutes when prompted
+  - Complete manual login in the browser window when prompted
   - The application will guide you through the login process
+  - Press Enter in the terminal once you've successfully logged in
   - Ensure you're on the Prime Video watch history page after login
   - For 2FA, complete the authentication process as required
-  - Check `login-error.png` for diagnostics if issues persist
+  - If you get a login error, the application will show your current URL and specific instructions
+  - URLs with "auth" parameters (like `ref_=atv_auth_red_aft`) are normal and won't trigger login errors
 
 - **Large Watch Histories**:
   - Processing may take time (1-2 items/second)
@@ -155,26 +160,149 @@ The generated CSV contains these columns:
   - **Note**: WebDriver path configuration is not required in config.json - the application connects automatically to localhost:4444
 
 - **Metadata Failures**:
-  - Verify API keys are valid
-  - Some obscure titles may not be found
+  - **"All providers failed" error**: Check that your API keys are properly set (not placeholder values)
+  - **Invalid API keys**: Verify your credentials are correct and active
+  - **Network issues**: Ensure you have internet connection
+  - **Rate limits**: Some APIs have request limits - wait and retry if needed
+  - **Optional providers**: You can leave TVDB/MAL as placeholders if you don't need them
+  - Some obscure titles may not be found in any database
 
 - **Browser Compatibility**:
   - Tested with latest Chrome and Firefox
   - Ensure browser automation is not blocked
 
+## API Key Testing
+
+To test if your API keys are working before running the full application:
+
+1. **Simkl**: Visit [Simkl API](https://api.simkl.com/) and test your credentials
+2. **TMDB**: Visit [TMDB API](https://www.themoviedb.org/documentation/api) and try a simple request
+3. **TVDB**: Check your API key on their [developer page](https://thetvdb.com/api-information)
+4. **MyAnimeList**: Test your credentials on their [API config page](https://myanimelist.net/apiconfig)
+
+**Note**: The application will tell you which specific API is failing if you check the detailed error logs.
+
 ## Testing
 
-Run all tests:
+### Run Configuration Tests
+```bash
+cargo test --test config_tests -- --nocapture
+```
+
+Configuration tests verify:
+- ✅ Configuration loading from generated config.json
+- ✅ Fallback behavior for missing config files
+- ✅ Configuration validation and error handling
+- ✅ API key detection and placeholder handling
+- ✅ Configuration reloading and persistence
+- ✅ Graceful error handling for invalid config
+
+### Run API Integration Tests
+```bash
+cargo test --test api_integration_tests -- --nocapture
+```
+
+Integration tests verify:
+- ✅ Mock API endpoint testing
+- ✅ HTTP client functionality
+- ✅ Error handling and rate limiting
+- ✅ Response parsing and validation
+- ✅ JSON data integrity
+- ✅ URL construction
+- ✅ Mock server setup
+
+**Test Results**: 8/8 tests passing ✅
+
+### Run All Tests
 ```bash
 cargo test
 ```
 
-Tests verify:
-- Configuration handling
-- Metadata lookup logic
-- History processing
-- CSV generation
-- Error handling
+### Test Configuration Setup
+
+The test suite dynamically loads configuration from the generated `config.json` file:
+
+1. **Build generates config**: `cargo build --release` creates `target/release/config.json`
+2. **Tests load dynamically**: Configuration tests read from the generated file
+3. **Fallback handling**: Tests gracefully handle missing or invalid configuration
+4. **API key validation**: Tests detect and report on placeholder vs real API keys
+
+### Quick Start for Your Setup
+
+If you have a `config.json` file in your `target/release/` directory with real API keys, run:
+
+**Windows PowerShell:**
+```powershell
+$env:CONFIG_PATH = "target/release/config.json"; cargo test --test config_tests -- --nocapture
+```
+
+**Windows Command Prompt:**
+```cmd
+set CONFIG_PATH=target/release/config.json && cargo test --test config_tests -- --nocapture
+```
+
+**To test with your release config (recommended):**
+```powershell
+$env:CONFIG_PATH = "target/release/config.json"; cargo test --release --test config_tests -- --nocapture
+```
+
+**Linux/macOS:**
+```bash
+CONFIG_PATH=target/release/config.json cargo test --test config_tests -- --nocapture
+```
+
+**Note**: Use `--release` flag if your config is in `target/release/config.json` and you want to test the release build.
+
+### Environment Variables
+
+You can set environment variables in several ways:
+
+**Windows Command Prompt:**
+```cmd
+set CONFIG_PATH=C:\path\to\config.json
+set SKIP_INTEGRATION_TESTS=1
+cargo test
+```
+
+**PowerShell:**
+```powershell
+$env:CONFIG_PATH = "C:\path\to\config.json"
+$env:SKIP_INTEGRATION_TESTS = "1"
+cargo test
+```
+
+**PowerShell (single command):**
+```powershell
+$env:CONFIG_PATH = "C:\path\to\config.json"; cargo test -- --nocapture
+```
+
+**Windows Command Prompt (single command):**
+```cmd
+set CONFIG_PATH=C:\path\to\config.json && cargo test -- --nocapture
+```
+
+**Linux/macOS Terminal:**
+```bash
+export CONFIG_PATH=/path/to/config.json
+export SKIP_INTEGRATION_TESTS=1
+cargo test
+```
+
+**Linux/macOS (single command):**
+```bash
+CONFIG_PATH=/path/to/config.json SKIP_INTEGRATION_TESTS=1 cargo test -- --nocapture
+```
+
+**For CI/CD or permanent settings:**
+- Create a `.env` file in the project root
+- Use tools like `direnv` or IDE environment variable settings
+- Set system-wide environment variables in OS settings
+
+**Purpose:**
+- `CONFIG_PATH=/path/to/config.json` - Use custom config location for tests
+- `SKIP_INTEGRATION_TESTS=1` - Skip tests requiring real API keys
+
+Tests verify configuration handling, metadata lookup logic, history processing, CSV generation, and error handling.
 
 ## License
 
