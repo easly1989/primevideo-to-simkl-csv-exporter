@@ -371,7 +371,7 @@ mod integration_tests {
 /// Documentation for running tests with configuration
 #[cfg(test)]
 mod documentation_tests {
-    use super::*;
+    
 
     /// Test that documents how to run tests with real config
     #[test]
